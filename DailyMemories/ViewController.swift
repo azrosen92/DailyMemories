@@ -26,7 +26,7 @@ class ViewController: UIViewController {
     
     @IBAction func takePhoto() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            imagePickerController.sourceType = .camera
+            imagePickerController.sourceType = .photoLibrary
             imagePickerController.cameraDevice = .front
         }
         
