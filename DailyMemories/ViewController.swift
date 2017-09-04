@@ -39,21 +39,32 @@ class ViewController: UIViewController {
         
         // 1. Create Vision Core ML model
         
-        // 👩🏻‍💻 YOUR CODE GOES HERE
+        let model = GoogLeNetPlaces()
+        guard let visionModel = try? VNCoreMLModel(for: model.model) else { return }
+        
         
         // 2. Create Vision Core ML request
 
-        // 👨🏽‍💻 YOUR CODE GOES HERE
+        let request = VNCoreMLRequest(model: visionModel, completionHandler: self.handleClassificationResults)
 
         // 3. Create request handler
         // *First convert image: UIImage to CGImage + get CGImagePropertyOrientation (helper method)*
         
-        // 👨🏼‍💻 YOUR CODE GOES HERE
+        guard let cgImage = image.cgImage else { fatalError("Image could not be converted") }
+        let orienation = self.convertToCGImageOrientation(from: image)
+        let requestHandler = VNImageRequestHandler(cgImage: cgImage, orientation: orienation)
     
         // 4. Perform request on handler
         // Ensure that it is done on an appropriate queue (not main queue)
         
-        // 👩🏼‍💻 YOUR CODE GOES HERE
+        self.captionLabel.text = "Classifying scene..."
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try requestHandler.perform([request])
+            } catch {
+                print("Error performing classification")
+            }
+        }
     }
     
     // 5. Do something with the results
@@ -61,7 +72,16 @@ class ViewController: UIViewController {
     // - Ensure that it is dispatched on the main queue, because we are updating the UI
     private func handleClassificationResults(for request: VNRequest, error: Error?) {
         
-        // 👨🏿‍💻 YOUR CODE GOES HERE
+        DispatchQueue.main.async {
+            guard
+                let classifications = request.results as? [VNClassificationObservation],
+                classifications.isEmpty != true else {
+                self.captionLabel.text = "Unable to classify"
+                return
+            }
+            
+            self.updateCaptionLabel(classifications)
+        }
         
     }
     
